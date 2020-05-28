@@ -55,7 +55,8 @@ public class CompositeDriverConfigLoader implements DriverConfigLoader {
     if (!primaryConfigLoader.supportsReloading() && !fallbackConfigLoader.supportsReloading()) {
       return CompletableFutures.failedFuture(
           new UnsupportedOperationException(
-              "This instance of DefaultDriverConfigLoader does not support reloading"));
+              "Reloading is not supported (this is a composite config, "
+                  + "and neither the primary nor the fallback are reloadable)"));
     } else if (!primaryConfigLoader.supportsReloading()) {
       return fallbackConfigLoader.reload();
     } else if (!fallbackConfigLoader.supportsReloading()) {
