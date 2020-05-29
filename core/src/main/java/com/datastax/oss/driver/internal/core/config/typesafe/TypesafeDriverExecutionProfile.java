@@ -270,7 +270,7 @@ public abstract class TypesafeDriverExecutionProfile implements DriverExecutionP
   @NonNull
   @Override
   public Object getComparisonKey(@NonNull DriverOption option) {
-    // Override the default implementation because we can do much simpler
+    // This method has a default implementation in the interface, but here we can do it in one line:
     return getEffectiveOptions().getConfig(option.getPath());
   }
 

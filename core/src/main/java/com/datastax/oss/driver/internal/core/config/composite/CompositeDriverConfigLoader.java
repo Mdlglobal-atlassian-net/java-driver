@@ -21,6 +21,7 @@ import com.datastax.oss.driver.api.core.context.DriverContext;
 import com.datastax.oss.driver.internal.core.util.concurrent.CompletableFutures;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
 public class CompositeDriverConfigLoader implements DriverConfigLoader {
@@ -62,13 +63,25 @@ public class CompositeDriverConfigLoader implements DriverConfigLoader {
     } else if (!fallbackConfigLoader.supportsReloading()) {
       return primaryConfigLoader.reload();
     } else {
-      return fallbackConfigLoader
-          .reload()
-          .thenCompose(
-              fallbackChanged ->
-                  primaryConfigLoader
-                      .reload()
-                      .thenApply(primaryChanged -> primaryChanged || fallbackChanged));
+      CompletionStage<Boolean> primaryFuture = primaryConfigLoader.reload();
+      CompletionStage<Boolean> fallbackFuture = fallbackConfigLoader.reload();
+      CompletableFuture<Boolean> compositeFuture = new CompletableFuture<>();
+      primaryFuture.whenComplete(
+          (primaryChanged, primaryError) ->
+              fallbackFuture.whenComplete(
+                  (fallbackChanged, fallbackError) -> {
+                    if (primaryError == null && fallbackError == null) {
+                      compositeFuture.complete(primaryChanged || fallbackChanged);
+                    } else if (fallbackError == null) {
+                      compositeFuture.completeExceptionally(primaryError);
+                    } else if (primaryError == null) {
+                      compositeFuture.completeExceptionally(fallbackError);
+                    } else {
+                      primaryError.addSuppressed(fallbackError);
+                      compositeFuture.completeExceptionally(primaryError);
+                    }
+                  }));
+      return compositeFuture;
     }
   }
 

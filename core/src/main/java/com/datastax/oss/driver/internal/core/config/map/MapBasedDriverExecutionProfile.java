@@ -171,20 +171,6 @@ public class MapBasedDriverExecutionProfile implements DriverExecutionProfile {
 
   @NonNull
   @Override
-  public Object getComparisonKey(@NonNull DriverOption option) {
-    // This method is only used during driver initialization, performance is not crucial
-    String prefix = option.getPath();
-    ImmutableMap.Builder<String, Object> childOptions = ImmutableMap.builder();
-    for (Map.Entry<String, Object> entry : entrySet()) {
-      if (entry.getKey().startsWith(prefix)) {
-        childOptions.put(entry.getKey(), entry.getValue());
-      }
-    }
-    return childOptions.build();
-  }
-
-  @NonNull
-  @Override
   public SortedSet<Map.Entry<String, Object>> entrySet() {
     ImmutableSortedSet.Builder<Map.Entry<String, Object>> builder =
         ImmutableSortedSet.orderedBy(Map.Entry.comparingByKey());

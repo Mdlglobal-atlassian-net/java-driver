@@ -45,7 +45,7 @@ public class CompositeDriverExecutionProfile implements DriverExecutionProfile {
     this.primaryConfig = Objects.requireNonNull(primaryConfig);
     this.fallbackConfig = Objects.requireNonNull(fallbackConfig);
     this.profileName = Objects.requireNonNull(profileName);
-    refresh();
+    refreshInternal();
   }
 
   /**
@@ -56,6 +56,11 @@ public class CompositeDriverExecutionProfile implements DriverExecutionProfile {
    * main config, not every time an option is fetched from the profile.
    */
   public CompositeDriverExecutionProfile refresh() {
+    return refreshInternal();
+  }
+
+  // This method only exists to avoid calling its public, overridable variant from the constructor
+  private CompositeDriverExecutionProfile refreshInternal() {
     // There's no `hasProfile()` in the public API because it didn't make sense until now. So
     // unfortunately we have to catch the exception.
     try {
